@@ -27,14 +27,11 @@ class AudioListAdapter(private val context: Context) : RecyclerView.Adapter<Audi
         var allTimeOfAudio: TextView = item.findViewById(R.id.allTime)
         var playBtn: ImageButton = item.findViewById(R.id.playBtn)
         var stopBtn: ImageButton = item.findViewById(R.id.stopBtn)
-
-
-
+        var deleteBtn: ImageButton = item.findViewById(R.id.deleteBtn)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AudioListHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.recycler_item, parent, false)
-        Log.d(TAG, "new ${view.tag}")
         return AudioListHolder(view)
     }
 
@@ -42,7 +39,6 @@ class AudioListAdapter(private val context: Context) : RecyclerView.Adapter<Audi
         holder.nameOfAudio.text = audioList[position].name
         holder.dateOfAudio.text = audioList[position].date
         holder.allTimeOfAudio.text = audioList[position].alltime
-       // holder.currentTimeOfAudio.text = "1:32"
         holder.playBtn.setOnClickListener {
             startPlay(audioList[position], holder.itemView)
         }
@@ -51,9 +47,20 @@ class AudioListAdapter(private val context: Context) : RecyclerView.Adapter<Audi
             holder.playBtn.visibility = View.VISIBLE
             pause()
         }
+        holder.deleteBtn.setOnClickListener {
+            deleteAudio(position, holder.itemView)
+        }
     }
 
-    override fun getItemCount() = audioList.size
+        override fun getItemCount() = audioList.size
+//
+//    override fun getItemId(position: Int): Long {
+//        return position.toLong()
+//    }
+
+    override fun getItemViewType(position: Int): Int {
+        return position
+    }
 
     fun setupAudio(audiolist: MutableList<AudioData> ){
         audioList.addAll(audiolist)
@@ -78,14 +85,20 @@ class AudioListAdapter(private val context: Context) : RecyclerView.Adapter<Audi
         }
     }
 
+    private fun getAudioPath(): File {
+        val number = 20
+        audioFile = File(context.cacheDir.absolutePath + File.separator + "audio.${number}.name${number}.${number}${number}september.${number}${number}${number}.mp3")
+        return audioFile
+    }
+
     fun stopWrite() {
         recorder.stop()
+        val number = 20
+        audioList.add(0, AudioData(number, "name${number}", "${number}${number}september", "${number}${number}${number}"))
+        notifyDataSetChanged()
     }
 
     private fun startPlay(audio: AudioData, view: View) {
-
-        Log.d(TAG, "start play :    ${mediaPlayer.isPlaying}")
-
         if ( !mediaPlayer.isPlaying ) {
             mediaPlayer.reset()
             view.playBtn.visibility = View.INVISIBLE
@@ -107,17 +120,16 @@ class AudioListAdapter(private val context: Context) : RecyclerView.Adapter<Audi
         mediaPlayer.stop()
     }
 
-    private fun getAudioPath(): File {
-        audioFile = File(context.cacheDir.absolutePath + File.separator + "audio.9.name9.19september.119.mp3")
-        audioList.add(0, AudioData(9, "name9", "19september", "119"))
-        notifyItemInserted(0)
-        return audioFile
-    }
-
-
-
-
-    fun clear(){
-        mediaPlayer.release()
+    fun deleteAudio(position: Int, view: View){
+        val number = view.nameOfAudio.text.substring(4)
+        if( mediaPlayer.isPlaying   )   {   mediaPlayer.reset()   }
+        context.cacheDir.listFiles()?.map {
+            if(it.path == "/data/user/0/com.example.mediaPlayer/cache/audio.${number}.name$number.$number${number}september.$number$number$number.mp3"){
+                it.delete()
+                Log.d(TAG, "in if $number")
+            }
+        }
+        audioList.removeAt(position)
+        notifyItemRemoved(position)
     }
 }

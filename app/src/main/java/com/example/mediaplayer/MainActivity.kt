@@ -1,7 +1,6 @@
 package com.example.mediaplayer
 
 import android.Manifest
-import android.content.Context
 import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -10,9 +9,10 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.mediaplayer.databinding.ActivityMainBinding
 
-const val TAG = "logs"
+const val TAG: String = "logs"
 
 class MainActivity : AppCompatActivity() {
     lateinit var binding : ActivityMainBinding
@@ -37,8 +37,7 @@ class MainActivity : AppCompatActivity() {
             audioList.add(AudioData(tmpList[1].toInt(), tmpList[2], tmpList[3], tmpList[4] ))
         }
 
-        if(!audioList.isEmpty()) {
-            Log.d(TAG, "${audioList.reversed() as MutableList<AudioData> }")
+        if(audioList.isNotEmpty()) {
             val reversedlist: MutableList<AudioData> = audioList.reversed() as MutableList<AudioData>
             adapter.setupAudio( reversedlist )
             binding.recycler.addItemDecoration(DividerItemDecoration(this, manager.orientation))
@@ -71,6 +70,16 @@ class MainActivity : AppCompatActivity() {
         adapter = AudioListAdapter(this)
         binding.recycler.adapter = adapter
         binding.recycler.layoutManager = manager
+
+        adapter.registerAdapterDataObserver(object :
+             RecyclerView.AdapterDataObserver() {
+               override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
+                  binding.recycler.scrollToPosition(0)
+                  super.onItemRangeInserted(positionStart, itemCount)
+             }
+            }
+        )
+
     }
 
     companion object {

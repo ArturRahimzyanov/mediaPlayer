@@ -1,12 +1,15 @@
 package com.example.mediaplayer
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.FragmentTransaction
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -17,39 +20,29 @@ const val TAG: String = "logs"
 class MainActivity : AppCompatActivity() {
     lateinit var binding : ActivityMainBinding
 
+
     lateinit var adapter: AudioListAdapter
     lateinit var manager: LinearLayoutManager
     private val audioList = mutableListOf<AudioData>()
+    private var isRecording = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         checkPermissions()
-        listennersInit()
-        recyclerInit()
-        initAudioFromCash()
+        initEnterfragment()
     }
 
-    private fun initAudioFromCash() {
-        this.cacheDir.listFiles()?.map {
-            val tmpList = it.path.substringAfterLast("/").split(".")
-            audioList.add(AudioData(tmpList[1].toInt(), tmpList[2], tmpList[3], tmpList[4] ))
-        }
 
-        if(audioList.isNotEmpty()) {
-            val reversedlist: MutableList<AudioData> = audioList.reversed() as MutableList<AudioData>
-            adapter.setupAudio( reversedlist )
-            binding.recycler.addItemDecoration(DividerItemDecoration(this, manager.orientation))
-        }
+    private inline fun FragmentManager.inTransaction(func: FragmentTransaction.() -> Unit ){
+        val fragmentTransaction = beginTransaction()
+        fragmentTransaction.func()
+        fragmentTransaction.commit()
     }
-
-    private fun listennersInit() {
-        binding.startWriteBtn.setOnClickListener {
-            adapter.writeAudio()
-        }
-        binding.startWriteBtn2.setOnClickListener {
-            adapter.stopWrite()
+    private fun initEnterfragment() {
+        supportFragmentManager.inTransaction {
+            //add(R.id.fragment_container, EnterFragment())
         }
     }
 
@@ -64,23 +57,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
-    private fun recyclerInit() {
-        manager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
-        adapter = AudioListAdapter(this)
-        binding.recycler.adapter = adapter
-        binding.recycler.layoutManager = manager
-
-        adapter.registerAdapterDataObserver(object :
-             RecyclerView.AdapterDataObserver() {
-               override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
-                  binding.recycler.scrollToPosition(0)
-                  super.onItemRangeInserted(positionStart, itemCount)
-             }
-            }
-        )
-
-    }
 
     companion object {
         const val REQUEST_CODE = 111

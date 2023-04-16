@@ -12,6 +12,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.recycler_item.view.*
+import kotlinx.coroutines.coroutineScope
 import java.io.File
 
 class AudioListAdapter(private val context: Context) : RecyclerView.Adapter<AudioListAdapter.AudioListHolder>() {
@@ -20,6 +21,7 @@ class AudioListAdapter(private val context: Context) : RecyclerView.Adapter<Audi
     private lateinit var recorder: MediaRecorder
     private lateinit var audioFile: File
     private var mediaPlayer: MediaPlayer = MediaPlayer()
+    var number = 1
 
     inner class AudioListHolder(item : View) : RecyclerView.ViewHolder(item){
         var nameOfAudio: TextView = item.findViewById(R.id.nameOfAudio)
@@ -39,6 +41,8 @@ class AudioListAdapter(private val context: Context) : RecyclerView.Adapter<Audi
         holder.nameOfAudio.text = audioList[position].name
         holder.dateOfAudio.text = audioList[position].date
         holder.allTimeOfAudio.text = audioList[position].alltime
+        holder.stopBtn.visibility = View.INVISIBLE
+        holder.playBtn.visibility = View.VISIBLE
         holder.playBtn.setOnClickListener {
             startPlay(audioList[position], holder.itemView)
         }
@@ -52,18 +56,10 @@ class AudioListAdapter(private val context: Context) : RecyclerView.Adapter<Audi
         }
     }
 
-        override fun getItemCount() = audioList.size
-//
-//    override fun getItemId(position: Int): Long {
-//        return position.toLong()
-//    }
+    override fun getItemCount() = audioList.size
 
-    override fun getItemViewType(position: Int): Int {
-        return position
-    }
-
-    fun setupAudio(audiolist: MutableList<AudioData> ){
-        audioList.addAll(audiolist)
+    fun setupAudio(audioList: MutableList<AudioData> ){
+        audioList.addAll(audioList)
         notifyDataSetChanged()
     }
 
@@ -83,19 +79,21 @@ class AudioListAdapter(private val context: Context) : RecyclerView.Adapter<Audi
         } else {
             Toast.makeText(context, "нельзя одновременно слушать и записывать аудио", Toast.LENGTH_LONG).show()
         }
+        Log.d(TAG, "после попытки записи mediaplayer: ${mediaPlayer.isPlaying} ")
     }
 
     private fun getAudioPath(): File {
-        val number = 20
+        number++
         audioFile = File(context.cacheDir.absolutePath + File.separator + "audio.${number}.name${number}.${number}${number}september.${number}${number}${number}.mp3")
         return audioFile
     }
 
     fun stopWrite() {
         recorder.stop()
-        val number = 20
+        number
         audioList.add(0, AudioData(number, "name${number}", "${number}${number}september", "${number}${number}${number}"))
         notifyDataSetChanged()
+        Log.d(TAG, "после попытки остановки записи mediaplayer: ${mediaPlayer.isPlaying} ")
     }
 
     private fun startPlay(audio: AudioData, view: View) {
@@ -114,22 +112,25 @@ class AudioListAdapter(private val context: Context) : RecyclerView.Adapter<Audi
         } else {
             Toast.makeText(context, "нельзя включать сразу два аудио", Toast.LENGTH_LONG).show()
         }
+        Log.d(TAG, "после попытки проигрывания записи mediaplayer: ${mediaPlayer.isPlaying} ")
     }
 
     fun pause() {
         mediaPlayer.stop()
+        Log.d(TAG, "после попытки записи mediaplayer: ${mediaPlayer.isPlaying} ")
     }
 
     fun deleteAudio(position: Int, view: View){
         val number = view.nameOfAudio.text.substring(4)
-        if( mediaPlayer.isPlaying   )   {   mediaPlayer.reset()   }
+        if( mediaPlayer.isPlaying )   {   mediaPlayer.reset()   }
         context.cacheDir.listFiles()?.map {
             if(it.path == "/data/user/0/com.example.mediaPlayer/cache/audio.${number}.name$number.$number${number}september.$number$number$number.mp3"){
                 it.delete()
                 Log.d(TAG, "in if $number")
             }
         }
-        audioList.removeAt(position)
-        notifyItemRemoved(position)
+        audioList.removeAt(position - 1)
+        notifyItemRemoved(position )
+        Log.d(TAG, "после попытки удаления записи mediaplayer: ${mediaPlayer.isPlaying} ")
     }
 }

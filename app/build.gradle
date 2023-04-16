@@ -6,12 +6,12 @@ plugins {
 }
 
 android {
-    compileSdk 32
+    compileSdk 33
 
     defaultConfig {
         applicationId "com.example.mediaPlayer"
         minSdk 26
-        targetSdk 32
+        targetSdk 33
         versionCode 1
         versionName "1.0"
 
@@ -93,4 +93,7 @@ dependencies {
     testImplementation("androidx.arch.core:core-testing:2.1.0")
     // optional - Test helpers for Lifecycle runtime
     testImplementation ("androidx.lifecycle:lifecycle-runtime-testing:2.1.0")
+
+    implementation 'com.vk:android-sdk-core:3.0.0'
+    implementation 'com.vk:android-sdk-api:3.0.0' // generated models and api methods
 }
